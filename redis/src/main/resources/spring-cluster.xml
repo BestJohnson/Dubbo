@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="host1" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.237"/>
+        <constructor-arg name="port" value="6001"/>
+    </bean>
+    <bean id="host2" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.237"/>
+        <constructor-arg name="port" value="6002"/>
+    </bean>
+    <bean id="host3" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.237"/>
+        <constructor-arg name="port" value="6003"/>
+    </bean>
+    <bean id="host4" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.12"/>
+        <constructor-arg name="port" value="6004"/>
+    </bean>
+    <bean id="host5" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.12"/>
+        <constructor-arg name="port" value="6005"/>
+    </bean>
+    <bean id="host6" class="redis.clients.jedis.HostAndPort">
+        <constructor-arg name="host" value="192.168.1.12"/>
+        <constructor-arg name="port" value="6006"/>
+    </bean>
+
+
+    <!--连接池配置-->
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxIdle" value="7"/>
+        <property name="minIdle" value="5"/>
+        <property name="maxWaitMillis" value="5000"/>
+        <property name="maxTotal" value="15"/>
+    </bean>
+
+    <bean id="jedisCluster" class="redis.clients.jedis.JedisCluster">
+        <constructor-arg name="nodes">
+            <set>
+                <ref bean="host1"/>
+                <ref bean="host2"/>
+                <ref bean="host3"/>
+                <ref bean="host4"/>
+                <ref bean="host5"/>
+                <ref bean="host6"/>
+            </set>
+        </constructor-arg>
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
+    </bean>
+
+
+
+</beans>
