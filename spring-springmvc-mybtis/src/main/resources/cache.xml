@@ -1,0 +1,11 @@
+<ehcache>
+
+    <diskStore path="java.io.tmpdir"/>
+
+    <cache name="kaola"
+           maxElementsInMemory="10000"
+           eternal="false"
+           overflowToDisk="true"
+           diskPersistent="true"/>
+
+</ehcache>
