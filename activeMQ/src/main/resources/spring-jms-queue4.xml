@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:jms="http://www.springframework.org/schema/jms"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/jms http://www.springframework.org/schema/jms/spring-jms.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <!--自动扫描-->
+    <context:component-scan base-package="com.kaishengit"/>
+
+    <!--配置ActiveMQ的连接工厂-->
+    <bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+        <!--添加重试机制-->
+        <property name="redeliveryPolicy" ref="redeliveryPolicy"/>
+    </bean>
+
+    <!--spring适配的连接工厂-->
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <constructor-arg name="targetConnectionFactory" ref="activeMQConnectionFactory"/>
+    </bean>
+
+    <!--监听器-->
+    <bean id="listener" class="com.kaishengit.jms.queueListener3"/>
+
+
+    <!--监听器容器-->
+    <jms:listener-container acknowledge="client" connection-factory="connectionFactory">
+        <jms:listener destination="spring-queue" ref="listener"/>
+    </jms:listener-container>
+
+    <!--重试机制-->
+    <bean  id="redeliveryPolicy" class="org.apache.activemq.RedeliveryPolicy">
+        <property name="maximumRedeliveries" value="3"/>
+        <property name="initialRedeliveryDelay" value="2000"/>
+        <property name="redeliveryDelay" value="3000"/>
+
+    </bean>
+
+    <!--JmsTemplate-->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <!--消息默认的目的地，可选配置，可在发送时通过Destination设置-->
+        <property name="defaultDestinationName" value="spring-queue"/>
+        <!--签收模式，2表示手动签收-->
+        <property name="sessionAcknowledgeMode" value="2"/>
+    </bean>
+
+</beans>

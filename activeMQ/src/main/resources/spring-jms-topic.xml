@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!--配置ActiveMQ的连接工厂-->
+    <bean id="activeMQConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://localhost:61616"/>
+    </bean>
+
+    <!--spring适配的连接工厂-->
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <constructor-arg name="targetConnectionFactory" ref="activeMQConnectionFactory"/>
+    </bean>
+
+    <!--目的地：topic-->
+    <bean id="topic" class="org.apache.activemq.command.ActiveMQTopic">
+        <constructor-arg name="name" value="spring-topic"/>
+    </bean>
+    <!--JmsTemplate-->
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="defaultDestination" ref="topic"/>
+    </bean>
+
+    <!--监听器-->
+    <bean id="listener" class="com.kaishengit.jms.topicListener"/>
+
+    <!--监听器容器-->
+    <bean id="container" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="messageListener" ref="listener"/>
+
+        <property name="destination" ref="topic"/>
+    </bean>
+</beans>

@@ -6,7 +6,7 @@ import org.junit.Test;
 import javax.jms.*;
 import java.io.IOException;
 
-public class MQTest {
+public class QueueTest {
 
     @Test
     public void send() throws JMSException, IOException {
@@ -43,16 +43,15 @@ public class MQTest {
             producer.setDeliveryMode(DeliveryMode.PERSISTENT);
 
             //6、发送
-            TextMessage message = session.createTextMessage("message-5");
+            TextMessage message = session.createTextMessage("message-3");
             producer.send(message);
 
             //提交事务
             session.commit();
-        } catch (JMSException e) {
+
+        } catch (Exception e) {
             e.printStackTrace();
-            /*if(session != null) {
-                session.rollback();
-            }*/
+
 
         } finally {
             //7、释放资源
@@ -82,7 +81,7 @@ public class MQTest {
         Connection connection = connectionFactory.createConnection();
         connection.start();
         //3、创建session true/false表示使用事务与否
-        Session session = connection.createSession(false,Session.CLIENT_ACKNOWLEDGE);
+        final Session session = connection.createSession(false,Session.CLIENT_ACKNOWLEDGE);
         //4、消息目的地
         Destination destination = session.createQueue("qq-queue");
 
@@ -94,10 +93,27 @@ public class MQTest {
                 TextMessage textMessage = (TextMessage) message;
 
                 try {
-                    System.out.println(textMessage.getText());
+                    String text = textMessage.getText();
+                    System.out.println(text);
+
+                    if(text.equals("message-3")) {
+                        throw new RuntimeException("手动抛的异常");
+                    }
+                    //手动签收
                     textMessage.acknowledge();
-                } catch (JMSException e){
+
+                    //自动签收模式下，不catch异常，触发重试
+                    /*if(text.equals("message-3")) {
+                        throw new RuntimeException("手动抛的异常");
+                    }*/
+
+                } catch (Exception e){
                     e.printStackTrace();
+                    try {
+                        session.recover();
+                    } catch (JMSException e1) {
+                        e1.printStackTrace();
+                    }
                 }
             }
         });
